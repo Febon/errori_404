@@ -60,7 +60,6 @@ if (isset($_POST['selectCourse']) and is_array($_POST['selectCourse'])) {
 if (isset($_POST["submit"])) {
         foreach ($changeCourse as $key => $value) {
                 $cid = intval($value);
-                $cid = escapeSimple(preg_replace('/ +/', ' ', trim(preg_replace('/script/i', '+', $cid))));
                 if (!in_array($cid, $selectCourse)) {
                         // check if user tries to unregister from restricted course
                         if (is_restricted($cid)) {
@@ -69,7 +68,7 @@ if (isset($_POST["submit"])) {
 
                                 db_query("DELETE FROM cours_user
                                                 WHERE statut <> 1 AND statut <> 10 AND
-                                                user_id = $uid AND cours_id = $cid");
+                                                user_id = $uid AND cours_id = '".mysql_real_escape_string($cid)."'");
                         }
                 }
         }
@@ -90,7 +89,7 @@ if (isset($_POST["submit"])) {
                                 $restrictedCourses[] = $row['fake_code'];
                         } else {
                                 db_query("INSERT IGNORE INTO `cours_user` (`cours_id`, `user_id`, `statut`, `reg_date`)
-                                                 VALUES ($cid, $uid, 5, CURDATE())");
+                                                 VALUES ($cid, .mysql_real_escape_string($cid)., 5, CURDATE())");
                         }
                 }
         }
@@ -177,7 +176,7 @@ draw($tool_content, 1);
 function getfacfromfc( $dep_id) {
 	$dep_id = intval( $dep_id);
 
-	$fac = mysql_fetch_row(db_query("SELECT name FROM faculte WHERE id = '$dep_id'"));
+	$fac = mysql_fetch_row(db_query("SELECT name FROM faculte WHERE id = '".mysql_real_escape_string($dep_id)."'"));
 	if (isset($fac[0]))
 		return $fac[0];
 	else
@@ -196,7 +195,7 @@ function getdepnumcourses($fac) {
 	$res = mysql_fetch_row(db_query(
 	"SELECT count(code)
 	FROM cours_faculte
-	WHERE facid='$fac'" ));
+	WHERE facid= '".mysql_real_escape_string($fac)."'" ));
 	return $res[0];
 }
 

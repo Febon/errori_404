@@ -75,13 +75,11 @@ if (isset($submit) && (!isset($ldap_submit)) && !isset($changePass)) {
 		$username_form = escapeSimple($username_form);
 
     //unable script
-    $nom_form = preg_replace('/script/i', '+', $comments);
-    $prenom_form = preg_replace('/script/i', '+', $comments);
-    $username_form = preg_replace('/script/i', '+', $comments);
-    $email_form = preg_replace('/script/i', '+', $comments);
-    $am_form = preg_replace('/script/i', '+', $comments);
-    $persoStatus = preg_replace('/script/i', '+', $comments);
-    $langcode = preg_replace('/script/i', '+', $comments);
+    $nom_form = preg_replace('/script/i', '+', $nom_form);
+    $prenom_form = preg_replace('/script/i', '+', $prenom_form);
+    $username_form = preg_replace('/script/i', '+', $username_form);
+    $email_form = preg_replace('/script/i', '+', $email_form);
+    $am_form = preg_replace('/script/i', '+', $am_form);
 
 		if(mysql_query("UPDATE user
 	        SET nom='$nom_form', prenom='$prenom_form',
