@@ -33,21 +33,16 @@ work.php
 @Description: Main script for the work tool
 ==============================================================================
 */
-
-
 $require_current_course = TRUE;
 $require_login = true;
 $require_help = TRUE;
 $helpTopic = 'Work';
-
 include '../../include/baseTheme.php';
 include '../../include/lib/forcedownload.php';
-
 $head_content = "
 <script type='text/javascript'>
 function confirmation (name)
 {
-
     if (confirm(\"$langDelWarn1 \"+ name + \". $langWarnForSubmissions. $langDelSure \"))
         {return true;}
     else
@@ -55,7 +50,6 @@ function confirmation (name)
 }
 </script>
 ";
-
 $head_content .= <<<hContent
 <script type="text/javascript">
 function checkrequired(which, entry) {
@@ -78,45 +72,32 @@ function checkrequired(which, entry) {
 		return true;
 	}
 }
-
 </script>
 hContent;
-
-
 // For using with the pop-up calendar
 include 'jscalendar.inc.php';
-
 /**** The following is added for statistics purposes ***/
 include('../../include/action.php');
 $action = new action();
 $action->record('MODULE_ID_ASSIGN');
 /**************************************/
-
 $tool_content = "";
-
 include('work_functions.php');
-
 $workPath = $webDir."courses/".$currentCourseID."/work";
-
 if ($is_adminOfCourse) { //Only course admins can download assignments
   if (isset($get)) {
 	send_file($get);
   }
-
   if (isset($download)) {
 	include "../../include/pclzip/pclzip.lib.php";
 	download_assignments($download);
   }
 }
-
 $nameTools = $langWorks;
 mysql_select_db($currentCourseID);
-
 include('../../include/lib/fileUploadLib.inc.php');
 include('../../include/lib/fileManageLib.inc.php');
-
 $lang_editor = langname_to_code($language);
-
 $head_content .= <<<hContent
 <script type="text/javascript">
         _editor_url  = "$urlAppend/include/xinha/";
@@ -125,11 +106,9 @@ $head_content .= <<<hContent
 <script type="text/javascript" src="$urlAppend/include/xinha/XinhaCore.js"></script>
 <script type="text/javascript" src="$urlAppend/include/xinha/my_config.js"></script>
 hContent;
-
 //-------------------------------------------
 // main program
 //-------------------------------------------
-
 if ($is_adminOfCourse) {
 	if (isset($grade_comments)) {
 		$nameTools = $m['WorkView'];
@@ -199,24 +178,18 @@ if ($is_adminOfCourse) {
 		show_student_assignments();
 	}
 }
-
 add_units_navigation(TRUE);
 draw($tool_content, 2, 'work', $head_content.$local_head);
-
 //-------------------------------------
 // end of main program
 //-------------------------------------
-
 // Show details of a student's submission to professor
 function show_submission($sid)
 {
 	global $tool_content, $langWorks, $langSubmissionDescr, $langNotice3;
-
 	$nameTools = $langWorks;
 	$navigation[] = array("url"=>"work.php", "name"=> $langWorks);
-
 	if ($sub = mysql_fetch_array(db_query("SELECT * FROM assignment_submit WHERE id = '$sid'"))) {
-
 		$tool_content .= "<p>$langSubmissionDescr".
 		uid_to_name($sub['uid']).
 		$sub['submission_date'].
@@ -230,13 +203,13 @@ function show_submission($sid)
 		$tool_content .= "<p class=\"caution_small\">error - no such submission with id $sid</p>\n";
 	}
 }
-
-
 // insert the assignment into the database
 function add_assignment($title, $comments, $desc, $deadline, $group_submissions)
 {
-	global $tool_content, $workPath;
+  //unabl script
+  $comments = preg_replace('/script/i', '+', $comments);
 
+	global $tool_content, $workPath;
 	$secret = uniqid("");
 	db_query("INSERT INTO assignments
 		(title, description, comments, deadline, submission_date, secret_directory,
@@ -245,14 +218,9 @@ function add_assignment($title, $comments, $desc, $deadline, $group_submissions)
 			".autoquote($group_submissions).")");
 	mkdir("$workPath/$secret",0777);
 }
-
-
-
 function submit_work($id) {
-
 	global $tool_content, $workPath, $uid, $stud_comments, $group_sub, $REMOTE_ADDR, $langUploadSuccess,
 	$langBack, $langWorks, $langUploadError, $currentCourseID, $langExerciseNotPermit, $langUnwantedFiletype;
-
 	//DUKE Work submission bug fix.
 	//Do not allow work submission if:
 	//	> after work deadline
@@ -263,7 +231,6 @@ function submit_work($id) {
 	} else {
 		unset($status);
 	}
-
 	$submit_ok = FALSE; //Default do not allow submission
 	if(isset($uid) && $uid) { //check if loged-in
 		if ($GLOBALS['statut'] == 10) { //user is guest
@@ -283,20 +250,14 @@ function submit_work($id) {
 				//user NOT registered to this lesson
 				$submit_ok = FALSE;
 			}
-
 		}
 	} //checks for submission validity end here
-
   	$res = db_query("SELECT title FROM assignments WHERE id = '$id'");
 	$row = mysql_fetch_array($res);
-
 	$nav[] = array("url"=>"work.php", "name"=> $langWorks);
 	$nav[] = array("url"=>"work.php?id=$id", "name"=> $row['title']);
-
   	if($submit_ok) { //only if passed the above validity checks...
-
 	$msg1 = delete_submissions_by_uid($uid, -1, $id);
-
 	$local_name = greek_to_latin(uid_to_name($uid));
 	$am = mysql_fetch_array(db_query("SELECT am FROM user WHERE user_id = '$uid'"));
 	if (!empty($am[0])) {
@@ -328,18 +289,14 @@ function submit_work($id) {
 				'$filename','".$_FILES['userfile']['name'].
 				"', '$stud_comments')", $currentCourseID);
 		}
-
 		$tool_content .="<p class='success_small'>$msg2<br />$msg1<br /><a href='work.php'>$langBack</a></p><br />";
 	} else {
 	$tool_content .="    <p class='caution_small'>$langUploadError<br /><a href='work.php'>$langBack</a></p><br />";
 	}
-
   } else { // not submit_ok
   	$tool_content .="<p class=\"caution_small\">$langExerciseNotPermit<br /><a href='work.php'>$langBack</a></p></br>";
   }
 }
-
-
 //  assignment - prof view only
 function new_assignment()
 {
@@ -348,12 +305,9 @@ function new_assignment()
 	global $desc;
 	global $end_cal_Work;
 	global $langBack;
-
 	$day	= date("d");
 	$month	= date("m");
 	$year	= date("Y");
-
-
 	$tool_content .= "
   <form action='work.php' method='post' onsubmit='return checkrequired(this, \"title\");'>
     <table width='99%' class='FormData'>
@@ -401,11 +355,8 @@ function new_assignment()
     </table>
   </form>
   <br/>";
-
   	$tool_content .= "<p align='right'><a href='work.php'>$langBack</a></p>";
 }
-
-
 function date_form($day, $month, $year)
 {
 	global $tool_content, $langMonthNames;
@@ -432,23 +383,17 @@ function date_form($day, $month, $year)
 	}
 	$tool_content .= "</select>\n";
 }
-
 //form for editing
 function show_edit_assignment($id)
 {
 	global $tool_content, $m, $langEdit, $langWorks, $langBack;
 	global $urlAppend;
 	global $end_cal_Work_db;
-
 	$res = db_query("SELECT * FROM assignments WHERE id = '$id'");
 	$row = mysql_fetch_array($res);
-
 	$nav[] = array("url"=>"work.php", "name"=> $langWorks);
 	$nav[] = array("url"=>"work.php?id=$id", "name"=> $row['title']);
-
 	$deadline = $row['deadline'];
-
-
 	$description = q($row['description']);
 	$tool_content .= <<<cData
     <form action="$_SERVER[PHP_SELF]" method="post" onsubmit="return checkrequired(this, 'title');">
@@ -482,7 +427,6 @@ function show_edit_assignment($id)
       <th class="left">${m['deadline']}:</th>
       <td>
 cData;
-
 	$tool_content .= getJsDeadline($deadline)."
       </td>
     </tr>
@@ -490,15 +434,12 @@ cData;
       <th class='left'>".$m['group_or_user'].":</th>
       <td>".
 	"<input type='radio' name='group_submissions' value='0'";
-
 	if ($row['group_submissions'] == '0') {
         	$tool_content .= " checked='1' />";
         } else {
                 $tool_content .= " />";
         }
-
 	$tool_content .= $m['user_work']."<br /><input type='radio' name='group_submissions' value='1'";
-
 	if ($row['group_submissions'] != '0') {
         	$tool_content .= " checked='1' />";
 	} else {
@@ -513,38 +454,29 @@ cData;
     </tbody>
     </table>
     </form>";
-
 	$tool_content .= "
     <br />
     <div align='right'><a href='work.php'>$langBack</ul></div>
     ";
 }
-
 // edit assignment
 function edit_assignment($id)
 {
 	global $tool_content, $langBackAssignment, $langEditSuccess, $langEditError, $langWorks, $langEdit;
-
 	$nav[] = array("url"=>"work.php", "name"=> $langWorks);
 	$nav[] = array("url"=>"work.php?id=$id", "name"=> $_POST['title']);
-
 	if (db_query("UPDATE assignments SET title=".autoquote($_POST['title']).",
 		description=".autoquote($_POST['desc']).", group_submissions=".autoquote($_POST['group_submissions']).",
 		comments=".autoquote($_POST['comments']).", deadline=".autoquote($_POST['WorkEnd'])." WHERE id='$id'")) {
-
         $title = autounquote($_POST['title']);
 	$tool_content .="<p class='success_small'>$langEditSuccess<br /><a href='work.php?id=$id'>$langBackAssignment '$title'</a></p><br />";
 	} else {
 	$tool_content .="<p class='caution_small'>$langEditError<br /><a href='work.php?id=$id'>$langBackAssignment '$title'</a></p><br />";
 	}
 }
-
-
 //delete assignment
 function delete_assignment($id) {
-
 	global $tool_content, $workPath, $currentCourseID, $webDir, $langBack, $langDeleted;
-
 	$secret = work_secret($id);
 	db_query("DELETE FROM assignments WHERE id='$id'");
 	db_query("DELETE FROM assignment_submit WHERE assignment_id='$id'");
@@ -553,31 +485,23 @@ function delete_assignment($id) {
 	@mkdir("$webDir/courses/garbage/$currentCourseID/work",0777);
 	move_dir("$workPath/$secret",
 	"$webDir/courses/garbage/$currentCourseID/work/${id}_$secret");
-
 	$tool_content .="<p class=\"success_small\">$langDeleted<br /><a href=\"work.php\">".$langBack."</a></p>";
 }
-
-
 // show assignment - student
 function show_student_assignment($id)
 {
 	global $tool_content, $m, $uid, $langSubmitted, $langSubmittedAndGraded, $langNotice3,
 	$langWorks, $langUserOnly, $langBack, $langWorkGrade, $langGradeComments;
-
 	$res = db_query("SELECT *, (TO_DAYS(deadline) - TO_DAYS(NOW())) AS days
 		FROM assignments WHERE id = '$id'");
 	$row = mysql_fetch_array($res);
-
 	$nav[] = array("url"=>"work.php", "name"=> $langWorks);
-
 	assignment_details($id, $row);
-
 	if ($row['days'] < 0) {
 		$submit_ok = FALSE;
 	} else {
 		$submit_ok = TRUE;
 	}
-
 	if (!$uid) {
 		$tool_content .= "<p>$langUserOnly</p>";
 		$submit_ok = FALSE;
@@ -601,19 +525,15 @@ function show_student_assignment($id)
     <br/>
     <p align=\"right\"><a href='work.php'>$langBack</a></p>";
 }
-
-
 function show_submission_form($id)
 {
 	global $tool_content, $m, $langWorkFile, $langSendFile, $langSubmit, $uid, $langNotice3;
-
 	if (is_group_assignment($id) and ($gid = user_group($uid))) {
 		$tool_content .= "<p>$m[this_is_group_assignment] ".
 		"<a href='../group/document.php?userGroupId=$gid'>".
 		"$m[group_documents]</a> $m[select_publish]</p>";
 	} else {
 		$tool_content .= <<<cData
-
     <form enctype="multipart/form-data" action="work.php" method="post">
     <input type="hidden" name="id" value="${id}" />
     <br />
@@ -644,15 +564,11 @@ cData;
                         ini_get('upload_max_filesize') . "</small></p>";
 	}
 }
-
-
 // Print a box with the details of an assignment
 function assignment_details($id, $row, $message = null)
 {
 	global $tool_content, $m, $langDaysLeft, $langDays, $langWEndDeadline, $langNEndDeadLine, $langNEndDeadline, $langEndDeadline;
 	global $langDelAssign, $is_adminOfCourse, $langZipDownload, $langSaved ;
-
-
 	if ($is_adminOfCourse) {
 	$tool_content .= "
     <div id=\"operations_container\">
@@ -663,7 +579,6 @@ function assignment_details($id, $row, $message = null)
     </div>
 	";
 	}
-
 	if (isset($message)) {
 		$tool_content .="
     <table width=\"99%\">
@@ -734,7 +649,6 @@ function assignment_details($id, $row, $message = null)
     </tbody>
     </table>";
 }
-
 // Show a table header which is a link with the appropriate sorting
 // parameters - $attrib should contain any extra attributes requered in
 // the <th> tags
@@ -758,8 +672,6 @@ function sort_link($title, $opt, $attrib = '')
       <td $attrib><a href='work.php?sort=$opt$i'>$title</a></td>";
 	}
 }
-
-
 // show assignment - prof view only
 // the optional message appears insted of assignment details
 function show_assignment($id, $message = FALSE)
@@ -767,21 +679,15 @@ function show_assignment($id, $message = FALSE)
 	global $tool_content, $m, $langBack, $langNoSubmissions, $langSubmissions, $mysqlMainDb, $langWorks;
 	global $langEndDeadline, $langWEndDeadline, $langNEndDeadline, $langDays, $langDaysLeft, $langGradeOk;
 	global $currentCourseID, $webDir, $urlServer, $nameTools, $langGraphResults, $m;
-
 	$res = db_query("SELECT *, (TO_DAYS(deadline) - TO_DAYS(NOW())) AS days FROM assignments WHERE id = '$id'");
 	$row = mysql_fetch_array($res);
-
 	$nav[] = array("url"=>"work.php", "name"=> $langWorks);
-
-
 	if ($message) {
 		assignment_details($id, $row, $message);
 	} else {
 		assignment_details($id, $row);
 	}
-
 	//$tool_content .= "<h4>".$langSubmissions."</h4>";
-
 	$rev = (@($_REQUEST['rev'] == 1))? ' DESC': '';
 	if (isset($_REQUEST['sort'])) {
 		if ($_REQUEST['sort'] == 'am') {
@@ -796,14 +702,12 @@ function show_assignment($id, $message = FALSE)
 	} else {
 		$order = 'nom';
 	}
-
 	$result = db_query("SELECT *
 		FROM `$GLOBALS[code_cours]`.assignment_submit AS assign,
 		`$mysqlMainDb`.user AS user
 		WHERE assign.assignment_id='$id' AND user.user_id = assign.uid
 		ORDER BY $order $rev");
-
-	/*  The query is changed (AND assign.grade<>'' is appended) in order to constract the chart of 
+	/*  The query is changed (AND assign.grade<>'' is appended) in order to constract the chart of
 	 * grades distribution according to the graded works only (works that are not graded are omitted). */
 	$numOfResults = db_query("SELECT *
 		FROM `$GLOBALS[code_cours]`.assignment_submit AS assign,
@@ -811,7 +715,7 @@ function show_assignment($id, $message = FALSE)
 		WHERE assign.assignment_id='$id' AND user.user_id = assign.uid AND assign.grade<>''
 		ORDER BY $order $rev");
 	$num_resultsForChart = mysql_num_rows($numOfResults);
-	
+
 	$num_results = mysql_num_rows($result);
 	if ($num_results > 0) {
 		if ($num_results == 1) {
@@ -820,21 +724,15 @@ function show_assignment($id, $message = FALSE)
 			//$nameTools .= sprintf(" ($m[more_submissions])", $num_results);
 			$num_of_submissions = sprintf("$m[more_submissions]", $num_results);
 		}
-
 		require_once '../../include/libchart/libchart.php';
-
 		$chart = new PieChart(300, 200);
 		$chart->setTitle("$langGraphResults");
-
 		$gradeOccurances = array(); // Named array to hold grade occurances/stats
 		$gradesExists = 0;
 		while ($row = mysql_fetch_array($result)) {
-
 			$theGrade = $row['grade'];
-
 			if ($theGrade) {
 				$gradesExists = 1;
-
 			if (!isset($gradeOccurances[$theGrade])) {
 					$gradeOccurances[$theGrade] = 1;
 				} else {
@@ -844,15 +742,12 @@ function show_assignment($id, $message = FALSE)
 				}
 			}
 		}
-
 		$result = db_query("SELECT *
 					FROM `$GLOBALS[code_cours]`.assignment_submit AS assign,
 					`$mysqlMainDb`.user AS user
 					WHERE assign.assignment_id='$id' AND user.user_id = assign.uid
 					ORDER BY $order $rev");
-
 		$tool_content .= <<<cData
-
     <form action="work.php" method="post">
     <input type="hidden" name="grades_id" value="${id}" />
     <br />
@@ -865,13 +760,11 @@ function show_assignment($id, $message = FALSE)
     </tbody>
     </table>
 cData;
-
 			$tool_content .= "
       <table width=\"99%\" class=\"Work_List\">
       <tbody>
       <tr>
         <td width=\"3\">&nbsp;</td>";
-
 			sort_link($m['username'], 'nom', 'align=left');
 			sort_link($m['am'], 'am', 'align=left');
 			$tool_content .= "
@@ -881,7 +774,6 @@ cData;
 			$tool_content .= "
       </tr>
 ";
-
 		$i = 1;
 		while ($row = mysql_fetch_array($result))
 		{
@@ -891,7 +783,6 @@ cData;
 				"<a href='../group/group_space.php?userGroupId=$row[group_id]'>".
 				"$m[ofgroup] $row[group_id]</a>)";
 			} else $subContentGroup = "";
-
 			//professor comments
 			if (trim($row['grade_comments'] != '')) {
 				$prof_comment = "".htmlspecialchars($row['grade_comments']).
@@ -905,7 +796,6 @@ cData;
 			$uid_2_name = uid_to_name($row['uid']);
 			$stud_am = mysql_fetch_array(db_query("SELECT am from $mysqlMainDb.user WHERE user_id = '$row[uid]'"));
 			$tool_content .= <<<cData
-
       <tr>
         <td align='right' width='4'>$i.</td>
         <td>${uid_2_name} $subContentGroup</td>
@@ -941,10 +831,7 @@ cData;
       </tr>";
 			$i++;
 		} //END of While
-
 	$tool_content .="</tbody></table>";
-
-
 	$tool_content .= "
     <br />
     <table class='FormData' width='99%'>
@@ -957,8 +844,6 @@ cData;
     </table>
     </form>
 	";
-
-
 		if ($gradesExists) {
 			foreach ( $gradeOccurances as $gradeValue=>$gradeOccurance ) {
 				/*  Changed by nikos. Only the number of works that are graded
@@ -968,10 +853,8 @@ cData;
 				$percentage = 100*($gradeOccurance/$num_resultsForChart);
 				$chart->addPoint(new Point("$gradeValue ($percentage)", $percentage));
 			}
-
 			$chart_path = 'courses/'.$currentCourseID.'/temp/chart_'.md5(serialize($chart)).'.png';
 			$chart->render($webDir.$chart_path);
-
 			$tool_content .= "
     <table width='99%' class='FormData'>
     <tbody>
@@ -981,11 +864,8 @@ cData;
     </tbody>
     </table>";
 		}
-
 	} else {
-
 		$tool_content .= <<<cData
-
     <br />
     <table class="FormData" width="99%">
     <tbody>
@@ -1001,22 +881,15 @@ cData;
       <br/>
       <p align='right'><a href='work.php'>$langBack</a></p>";
 }
-
-
 // // show assignment - student view only
 function show_student_assignments()
 {
-
 	global $tool_content, $m, $uid;
 	global $langDaysLeft, $langDays, $langNoAssign, $urlServer;
-
 	$result = db_query("SELECT *, (TO_DAYS(deadline) - TO_DAYS(NOW())) AS days FROM assignments
 			WHERE active = '1' ORDER BY submission_date");
-
 	if (mysql_num_rows($result)) {
-
 		$tool_content .= <<<cData
-
       <table class="WorkSum" align="left" width="99%">
       <thead>
       <tr>
@@ -1040,7 +913,6 @@ cData;
         <td width='1'><img style='padding-top:3px;' src='${urlServer}/template/classic/img/arrow_grey.gif' title='bullet' /></td>
         <td><a href='work.php?id=${row['id']}'>${title_temp}</a></td>
         <td width='30%'>".nice_format($row['deadline']);
-
 			if ($row['days'] > 1) {
 				$tool_content .= " (<span class='not_expired'>$m[in]&nbsp;$row[days]&nbsp;$langDays</span>";
 			} elseif ($row['days'] < 0) {
@@ -1052,7 +924,6 @@ cData;
 			}
 			$tool_content .= "</td>
         <td width='10%' align='center'>";
-
 			$grade = ' - ';
 			if ($submission = find_submission($uid, $row['id'])) {
 				$tool_content .= "<img src='../../template/classic/img/checkbox_on.gif' alt='$m[yes]' />";
@@ -1073,34 +944,24 @@ cData;
       </table>';
 	} else {
 		$tool_content .= "<p class='alert1'>$langNoAssign</p>";
-
 	}
 }
-
-
 // show all the assignments
 function show_assignments($message = null)
 {
 	global $tool_content, $m, $langNoAssign, $langNewAssign, $langCommands, $urlServer;
-
 	$result = db_query("SELECT * FROM assignments ORDER BY id");
-
 	if (isset($message)) {
 		$tool_content .="<p class='success_small'>$message</p><br/>";
 	}
-
 	$tool_content .="
     <div id='operations_container'>
       <ul id='opslist'>
         <li><a href='work.php?add=1'>$langNewAssign</a></li>
       </ul>
     </div><br />";
-
-
 	if (mysql_num_rows($result)) {
-
 		$tool_content .= <<<cData
-
     <table width="99%" class="WorkSum" align="left">
     <thead>
     <tr>
@@ -1130,7 +991,6 @@ cData;
 	                    } else {
 	                       $tool_content .= "\n    <tr class='odd' ".$visibility_css.">";
                         }
-
 			$tool_content .= "
       <td width='1%'><img style='border:0px; padding-top:3px;' src='$urlServer/template/classic/img/$visibility_image.gif' title='bullet' /></td>
       <td ".$visibility_css."><a href='work.php?id=${row['id']}' ";
@@ -1142,7 +1002,6 @@ cData;
          <a href='work.php?id=$row[id]&amp;choice=edit'><img src='../../template/classic/img/edit.gif' alt='$m[edit]' /></a>";
 			$tool_content .= "
          <a href='work.php?id=$row[id]&amp;choice=do_delete' onClick='return confirmation(\"".addslashes($row_title)."\");'><img src='../../template/classic/img/delete.gif' alt='$m[delete]' /></a>";
-
 			if ($row['active']) {
 				$deactivate_temp = htmlspecialchars($m['deactivate']);
 				$activate_temp = htmlspecialchars($m['activate']);
@@ -1162,19 +1021,14 @@ cData;
                 $tool_content .= '</tbody></table>';
         } else {
                 $tool_content .= "<p class=\"alert1\">$langNoAssign</p>";
-
         }
 }
-
-
 // submit grade and comment for a student submission
 function submit_grade_comments($id, $sid, $grade, $comment)
 {
 	global $tool_content, $REMOTE_ADDR, $langGrades, $langWorkWrongInput;
-
 	$stupid_user = 0;
-
-	/*  If check expression is changed by nikos, in order to give to teacher the ability to 
+	/*  If check expression is changed by nikos, in order to give to teacher the ability to
 	 * assign comments to a work without assigning grade. */
 	if (!is_numeric($grade) && '' != $grade ) {
 		$tool_content .= $langWorkWrongInput;
@@ -1188,15 +1042,11 @@ function submit_grade_comments($id, $sid, $grade, $comment)
 		show_assignment($id, $langGrades);
 	}
 }
-
-
 // submit grades to students
 function submit_grades($grades_id, $grades)
 {
 	global $tool_content, $REMOTE_ADDR, $langGrades, $langWorkWrongInput;
-
 	$stupid_user = 0;
-
 	foreach ($grades as $sid => $grade) {
 		$val = mysql_fetch_row(db_query("SELECT grade from assignment_submit WHERE id = '$sid'"));
 		if ($val[0] != $grade) {
@@ -1207,7 +1057,6 @@ function submit_grades($grades_id, $grades)
                         }
 		}
 	}
-
 	if (!$stupid_user) {
 		foreach ($grades as $sid => $grade) {
 			$val = mysql_fetch_row(db_query("SELECT grade from assignment_submit WHERE id = '$sid'"));
@@ -1222,26 +1071,21 @@ function submit_grades($grades_id, $grades)
 		$tool_content .= $langWorkWrongInput;
 	}
 }
-
 // functions for downloading
 function send_file($id)
 {
 	global $tool_content, $currentCourseID;
 	mysql_select_db($currentCourseID);
 	$info = mysql_fetch_array(mysql_query("SELECT * FROM assignment_submit WHERE id = '$id'"));
-
 	header("Content-Type: application/octet-stream");
 	header("Content-Disposition: attachment; filename=".basename($info['file_name']));
 	readfile("$GLOBALS[workPath]/$info[file_path]");
 	exit();
 }
-
-
 // Zip submissions to assignment $id and send it to user
 function download_assignments($id)
 {
 	global $tool_content, $workPath;
-
 	$secret = work_secret($id);
 	$filename = "$GLOBALS[currentCourseID]_work_$id.zip";
 	chdir($workPath);
@@ -1254,15 +1098,12 @@ function download_assignments($id)
 	unlink($filename);
 	exit();
 }
-
-
 // Create an index.html file for assignment $id listing user submissions
 // Set $online to TRUE to get an online view (on the web) - else the
 // index.html works for the zip file
 function create_zip_index($path, $id, $online = FALSE)
 {
 	global $tool_content, $charset, $m;
-
 	$fp = fopen($path, "w");
 	if (!$fp) {
 		die("Unable to create assignment index file - aborting");
@@ -1282,12 +1123,9 @@ function create_zip_index($path, $id, $online = FALSE)
 				<th>'.$m['sub_date'].'</th>
 				<th>'.$m['grade'].'</th>
 			</tr></thead>');
-
 	$result = db_query("SELECT * FROM assignment_submit
 		WHERE assignment_id='$id' ORDER BY id");
-
 	$tool_content .= "<tbody>";
-
 	while ($row = mysql_fetch_array($result)) {
 		$filename = basename($row['file_path']);
 		fputs($fp, '
@@ -1319,8 +1157,6 @@ function create_zip_index($path, $id, $online = FALSE)
 	fputs($fp, ' </tbody></table></body></html>');
 	fclose($fp);
 }
-
-
 // Show a simple html page with grades and submissions
 function show_plain_view($id)
 {
