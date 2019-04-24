@@ -65,6 +65,7 @@ if (isset($_POST["submit"])) {
                         if (is_restricted($cid)) {
                                 $tool_content .= "(restricted unsub $cid) ";
                         } else {
+                          $cid = escapeSimple(preg_replace('/ +/', ' ', trim(preg_replace('/script/i', '+', $cid))));
                                 db_query("DELETE FROM cours_user
                                                 WHERE statut <> 1 AND statut <> 10 AND
                                                 user_id = $uid AND cours_id = $cid");
