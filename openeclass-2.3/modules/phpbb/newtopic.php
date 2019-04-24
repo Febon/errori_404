@@ -27,13 +27,10 @@
         phpbb/newtopic.php
         @last update: 2006-07-23 by Artemios G. Voyiatzis
         @authors list: Artemios G. Voyiatzis <bogart@upnet.gr>
-
         based on Claroline version 1.7 licensed under GPL
               copyright (c) 2001, 2006 Universite catholique de Louvain (UCL)
-
         Claroline authors: Piraux Sebastien <pir@cerdecam.be>
                       Lederer Guillaume <led@cerdecam.be>
-
 	based on phpBB version 1.4.1 licensed under GPL
 		copyright (c) 2001, The phpBB Group
 ==============================================================================
@@ -45,13 +42,10 @@
 	(viewforum, viewtopic, post_reply, newtopic); the time cost is
 	enormous for both core phpBB code upgrades and migration from an
 	existing (phpBB-based) to a new eclass forum :-(
-
     @Comments:
-
     @todo:
 ==============================================================================
 */
-
 /*
  * Open eClass 2.x standard stuff
  */
@@ -70,15 +64,11 @@ $head_content = <<<hContent
 <script type="text/javascript" src="$urlAppend/include/xinha/XinhaCore.js"></script>
 <script type="text/javascript" src="$urlAppend/include/xinha/my_config.js"></script>
 hContent;
-
-
 include_once("./config.php");
 include("functions.php"); // application logic for phpBB
-
 /******************************************************************************
  * Actual code starts here
  *****************************************************************************/
-
 $sql = "SELECT forum_name, forum_access, forum_type FROM forums
 	WHERE (forum_id = '$forum')";
 if (!$result = db_query($sql, $currentCourseID)) {
@@ -91,16 +81,13 @@ $forum_name = $myrow["forum_name"];
 $forum_access = $myrow["forum_access"];
 $forum_type = $myrow["forum_type"];
 $forum_id = $forum;
-
 $nameTools = $langNewTopic;
 $navigation[]= array ("url"=>"index.php", "name"=> $langForums);
 $navigation[]= array ("url"=>"viewforum.php?forum=$forum_id", "name"=> $forum_name);
-
 if (!does_exists($forum, $currentCourseID, "forum")) {
 	//XXX: Error message in specified language
 	$tool_content .= $langErrorPost;
 }
-
 if (isset($submit) && $submit) {
 	$subject = strip_tags($subject);
 	if (trim($message) == '' || trim($subject) == '') {
@@ -111,7 +98,7 @@ if (isset($submit) && $submit) {
 	if (!isset($username)) {
 		$username = $langAnonymous;
 	}
-	
+
 	if($forum_access == 3 && $user_level < 2) {
 		$tool_content .= $langNoPost;
 		draw($tool_content, 2, 'phpbb', $head_content);
@@ -140,6 +127,9 @@ if (isset($submit) && $submit) {
 	$time = date("Y-m-d H:i");
 	$nom = addslashes($nom);
 	$prenom = addslashes($prenom);
+  //unable urls & script
+  $message = preg_replace('/(http)|(www)|(script)/i', '+', $message);
+  $subject = preg_replace('/(http)|(www)|(script)/i', '+', $subject);
 
 	if (isset($sig) && $sig) {
 		$message .= "\n[addsig]";
@@ -147,7 +137,6 @@ if (isset($submit) && $submit) {
 	$sql = "INSERT INTO topics (topic_title, topic_poster, forum_id, topic_time, topic_notify, nom, prenom)
 			VALUES (" . autoquote($subject) . ", '$uid', '$forum', '$time', 1, '$nom', '$prenom')";
 	$result = db_query($sql, $currentCourseID);
-
 	$topic_id = mysql_insert_id();
 	$sql = "INSERT INTO posts (topic_id, forum_id, poster_id, post_time, poster_ip, nom, prenom)
 			VALUES ('$topic_id', '$forum', '$uid', '$time', '$poster_ip', '$nom', '$prenom')";
@@ -171,21 +160,20 @@ if (isset($submit) && $submit) {
 		SET forum_posts = forum_posts+1, forum_topics = forum_topics+1, forum_last_post_id = $post_id
 		WHERE forum_id = '$forum'";
 	$result = db_query($sql, $currentCourseID);
-	
+
 	$topic = $topic_id;
 	$total_forum = get_total_topics($forum, $currentCourseID);
-	$total_topic = get_total_posts($topic, $currentCourseID, "topic")-1;  
+	$total_topic = get_total_posts($topic, $currentCourseID, "topic")-1;
 	// Subtract 1 because we want the nr of replies, not the nr of posts.
 	$forward = 1;
-
 	// --------------------------------
-	// notify users 
+	// notify users
 	// --------------------------------
 	$subject_notify = "$logo - $langNewForumNotify";
 	$category_id = forum_category($forum);
 	$cat_name = category_name($category_id);
-	$sql = db_query("SELECT DISTINCT user_id FROM forum_notify 
-			WHERE (forum_id = $forum OR cat_id = $category_id) 
+	$sql = db_query("SELECT DISTINCT user_id FROM forum_notify
+			WHERE (forum_id = $forum OR cat_id = $category_id)
 			AND notify_sent = 1 AND course_id = $cours_id", $mysqlMainDb);
 	$c = course_code_to_title($currentCourseID);
 	$body_topic_notify = "$langCourse: '$c'\n\n$langBodyForumNotify $langInForums '$forum_name' $langInCat '$cat_name' \n\n$gunet";
@@ -194,7 +182,7 @@ if (isset($submit) && $submit) {
 		send_mail('', '', '', $emailaddr, $subject_notify, $body_topic_notify, $charset);
 	}
 	// end of notification
-	
+
 	$tool_content .= "<table width='99%'><tbody>
 	<tr><td class='success'>
 	<p><b>$langStored</b></p>
@@ -202,7 +190,7 @@ if (isset($submit) && $submit) {
 	<p>$langClick <a href='viewforum.php?forum=$forum_id&amp;total_forum'>$langHere</a> $langReturnTopic</p>
 	</td>
 	</tr>
-	</tbody></table>"; 
+	</tbody></table>";
 } else {
 	if (!$uid AND !$fakeUid) {
 		$tool_content .= "<center><br /><br />

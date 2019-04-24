@@ -23,7 +23,6 @@
 *  			Panepistimiopolis Ilissia, 15784, Athens, Greece
 *  			eMail: info@openeclass.org
 * =========================================================================*/
-
 $require_help = TRUE;
 $require_login = true;
 $helpTopic = 'Profile';
@@ -31,12 +30,10 @@ include '../../include/baseTheme.php';
 include "../auth/auth.inc.php";
 $require_valid_uid = TRUE;
 $tool_content = "";
-
 check_uid();
 $nameTools = $langModifProfile;
 check_guest();
 $allow_username_change = !get_config('block-username-change');
-
 if (isset($submit) && (!isset($ldap_submit)) && !isset($changePass)) {
         if (!$allow_username_change) {
                 $username_form = $uname;
@@ -47,42 +44,45 @@ if (isset($submit) && (!isset($ldap_submit)) && !isset($changePass)) {
 	{
 		$user_exist=$myusername[0];
 	}
-
 	// check if there are empty fields
 	if (empty($nom_form) OR empty($prenom_form) OR empty($username_form)) {
 		header("location:". $_SERVER['PHP_SELF']."?msg=4");
 		exit();
 	}
-
 	elseif (empty($email_form) and check_prof()) {
 		header("location:". $_SERVER['PHP_SELF']."?msg=4");
 		exit();
 	}
-
 	elseif (strstr($username_form, "'") or strstr($username_form, '"') or strstr($username_form, '\\')){
 		header("location:". $_SERVER['PHP_SELF']."?msg=10");
 		exit();
 	}
-
 	// check if username is free
 	elseif(isset($user_exist) AND ($username_form==$user_exist) AND ($username_form!=$uname)) {
 		header("location:". $_SERVER['PHP_SELF']."?msg=5");
 		exit();
 	}
-
 	// check if email is valid
 	elseif (!email_seems_valid($email_form) and check_prof()) {
 		header("location:". $_SERVER['PHP_SELF']."?msg=6");
 		exit();
 	}
-
 	// everything is ok
 	else {
 		##[BEGIN personalisation modification]############
 		$_SESSION['langswitch'] = $language = langcode_to_name($_REQUEST['userLanguage']);
 		$langcode = langname_to_code($language);
-
 		$username_form = escapeSimple($username_form);
+
+    //unable script
+    $nom_form = preg_replace('/script/i', '+', $comments);
+    $prenom_form = preg_replace('/script/i', '+', $comments);
+    $username_form = preg_replace('/script/i', '+', $comments);
+    $email_form = preg_replace('/script/i', '+', $comments);
+    $am_form = preg_replace('/script/i', '+', $comments);
+    $persoStatus = preg_replace('/script/i', '+', $comments);
+    $langcode = preg_replace('/script/i', '+', $comments);
+
 		if(mysql_query("UPDATE user
 	        SET nom='$nom_form', prenom='$prenom_form',
 	        username='$username_form', email='$email_form', am='$am_form',
@@ -96,24 +96,20 @@ if (isset($submit) && (!isset($ldap_submit)) && !isset($changePass)) {
 	        }
 	}
 }	// if submit
-
 ##[BEGIN personalisation modification - For LDAP users]############
 if (isset($submit) && isset($ldap_submit) && ($ldap_submit == "ON")) {
 	$_SESSION['langswitch'] = $language = langcode_to_name($_REQUEST['userLanguage']);
 	$langcode = langname_to_code($language);
-
 	mysql_query("UPDATE user SET perso = '$persoStatus',
 		lang = '$langcode' WHERE user_id='".$_SESSION["uid"]."' ");
-	
+
 	if (isset($_SESSION['user_perso_active']) and $persoStatus == "no") {
 		unset($_SESSION['user_perso_active']);
 	}
-
 	header("location:". $_SERVER['PHP_SELF']."?msg=1");
 	exit();
 }
 ##[END personalisation modification]############
-
 //Show message if exists
 if(isset($msg))
 {
@@ -156,16 +152,12 @@ if(isset($msg))
 		}
 		default:die("invalid message id");
 	}
-
 	$tool_content .=  "<p class=\"$type\">$message<br><a href=\"../../index.php\">$urlText</a></p><br/>";
-
 }
-
 $sqlGetInfoUser ="SELECT nom, prenom, username, password, email, am, perso, lang
     FROM user WHERE user_id='".$uid."'";
 $result=mysql_query($sqlGetInfoUser);
 $myrow = mysql_fetch_array($result);
-
 $nom_form = $myrow['nom'];
 $prenom_form = $myrow['prenom'];
 $username_form = $myrow['username'];
@@ -182,19 +174,15 @@ if ($persoStatus == "yes")  {
 	$checkedClassic  = "";
 	$checkedPerso = "checked";
 }
-
 ##[END personalisation modification]############
-
 unset($_SESSION['uname']);
 unset($_SESSION['pass']);
 unset($_SESSION['nom']);
 unset($_SESSION['prenom']);
-
 $_SESSION['uname'] = $username_form;
 $_SESSION['pass'] = $password_form;
 $_SESSION['nom'] = $nom_form;
 $_SESSION['prenom'] = $prenom_form;
-
 ##[BEGIN personalisation modification]############IT DOES NOT UPDATE THE DB!!!
 if (isset($_SESSION['perso_is_active'])) {
 	if ($persoStatus == "no") {
@@ -203,13 +191,10 @@ if (isset($_SESSION['perso_is_active'])) {
 		unset($_SESSION['user_perso_active']);
 	}
 }
-
 ##[END personalisation modification]############
-
 $sec = $urlSecure.'modules/profile/profile.php';
 $passurl = $urlSecure.'modules/profile/password.php';
 $authmethods = array("imap","pop3","ldap","db","shibboleth");
-
 if ((!isset($changePass)) || isset($_POST['submit'])) {
 	$tool_content .= "<div id=\"operations_container\"><ul id=\"opslist\">";
 	if(!in_array($password_form,$authmethods)) {
@@ -221,7 +206,6 @@ if ((!isset($changePass)) || isset($_POST['submit'])) {
     <table width=\"99%\">
     <tbody><tr>
        <th width=\"220\" class='left'>$langName</th>";
-
 	if (isset($_SESSION['shib_user'])) {
                 $auth_text = "Shibboleth user";
 		$tool_content .= "<td class=\"caution_small\">&nbsp;&nbsp;&nbsp;&nbsp;<b>".$prenom_form."</b> [".$auth_text."]
@@ -229,7 +213,7 @@ if ((!isset($changePass)) || isset($_POST['submit'])) {
 	} else {
 		$tool_content .= "<td><input class='FormData_InputText' type=\"text\" size=\"40\" name=\"prenom_form\" value=\"$prenom_form\"></td>";
 	}
-	
+
 	$tool_content .= "</tr>
     <tr>
        <th class='left'>$langSurname</th>";
@@ -241,7 +225,6 @@ if ((!isset($changePass)) || isset($_POST['submit'])) {
        		$tool_content .= "<td><input class='FormData_InputText' type=\"text\" size=\"40\" name=\"nom_form\" value=\"$nom_form\"></td>";
 	}
     $tool_content .= "</tr>";
-
 	if(!in_array($password_form,$authmethods) and $allow_username_change) {
 		$tool_content .= "<tr>
        <th class='left'>$langUsername</th>
@@ -271,9 +254,7 @@ if ((!isset($changePass)) || isset($_POST['submit'])) {
       </td>
     </tr>";
 	}
-
 	$tool_content .= "<tr><th class='left'>$langEmail</th>";
-
 	if (isset($_SESSION['shib_user'])) {
         	$tool_content .= "<td class=\"caution_small\">&nbsp;&nbsp;&nbsp;&nbsp;<b>".$email_form."</b> [".$auth_text."]
                 <input type=\"hidden\" name=\"email_form\" value=\"$email_form\"></td>";
@@ -306,9 +287,7 @@ if ((!isset($changePass)) || isset($_POST['submit'])) {
     </tr>
     </tbody>
     </table>
-
 </form>
    ";
 }
-
 draw($tool_content, 1);
