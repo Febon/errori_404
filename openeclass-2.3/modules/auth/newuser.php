@@ -121,11 +121,11 @@ if (!isset($submit)) {
 } else {
 
 	//unable script
-	$nom = preg_replace('/script/i', '+', $comments);
-	$prenom = preg_replace('/script/i', '+', $comments);
-	$password = preg_replace('/script/i', '+', $comments);
-	$email = preg_replace('/script/i', '+', $comments);
-	$am = preg_replace('/script/i', '+', $comments);
+	$nom_form = escapeSimple(preg_replace('/ +/', ' ', trim(preg_replace('/script/i', '+', $nom_form))));
+	$prenom_form = escapeSimple(preg_replace('/ +/', ' ', trim(preg_replace('/script/i', '+', $prenom_form))));
+	$password = preg_replace('/script/i', '+', $password);
+	$email = preg_replace('/script/i', '+', $email);
+	$am = preg_replace('/script/i', '+', $am);
 	// trim white spaces in the end and in the beginning of the word
 	$uname = preg_replace('/\ +/', ' ', trim(isset($_POST['uname'])?$_POST['uname']:''));
 	// registration
@@ -195,6 +195,8 @@ if (!isset($submit)) {
 	} else {
 		$password_encrypted = $password;
 	}
+	$department = escapeSimple(preg_replace('/ +/', ' ', trim(preg_replace('/script/i', '+', $department))));
+	$am = escapeSimple(preg_replace('/ +/', ' ', trim(preg_replace('/script/i', '+', $am))));
 	$q1 = "INSERT INTO `$mysqlMainDb`.user
 	(user_id, nom, prenom, username, password, email, statut, department, am, registered_at, expires_at, lang)
 	VALUES ('NULL', '$nom_form', '$prenom_form', '$uname', '$password_encrypted', '$email','5',
